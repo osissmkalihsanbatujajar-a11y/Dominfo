@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { color-scheme: dark; -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply bg-ink-950 font-sans text-ink-100 antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    background-image:
+      radial-gradient(900px 480px at 85% -10%, rgba(111, 110, 242, 0.14), transparent 60%),
+      radial-gradient(700px 400px at -5% 10%, rgba(90, 85, 228, 0.08), transparent 60%);
+    background-attachment: fixed;
+  }
+  :focus-visible { @apply outline-none ring-2 ring-iris-400 ring-offset-2 ring-offset-ink-950; }
+  ::selection { background: rgba(111, 110, 242, 0.45); }
+  * { scrollbar-width: thin; scrollbar-color: #3a3e52 transparent; }
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-xl bg-ink-900/70 px-3 text-sm text-ink-100 ring-1 ring-inset ring-white/10 transition placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-iris-400 disabled:cursor-not-allowed disabled:opacity-50;
+    color-scheme: dark;
+  }
+  .glass { @apply bg-white/[0.04] ring-1 ring-inset ring-white/10 shadow-soft backdrop-blur-xl; }
+  .card-hover { @apply transition duration-200 hover:bg-white/[0.07] hover:ring-white/20; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
