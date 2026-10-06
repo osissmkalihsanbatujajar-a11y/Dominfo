@@ -13,6 +13,8 @@ export interface ListQuery {
   ilike?: Record<string, string | undefined>;
   gte?: Record<string, string | undefined>;
   lte?: Record<string, string | undefined>;
+  /** Kolom array yang harus memuat nilai tertentu. */
+  cs?: Record<string, string | undefined>;
   /** Format "kolom:asc" atau "kolom:desc". */
   sort: string;
   page?: number;
@@ -52,6 +54,7 @@ export function useList<T>(q: ListQuery) {
       Object.entries(q.eq ?? {}).forEach(([k, v]) => { if (v) query = query.eq(k, v); });
       Object.entries(q.ilike ?? {}).forEach(([k, v]) => { if (v && cleanSearch(v)) query = query.ilike(k, `%${cleanSearch(v)}%`); });
       Object.entries(q.gte ?? {}).forEach(([k, v]) => { if (v) query = query.gte(k, v); });
+      Object.entries(q.cs ?? {}).forEach(([k, v]) => { if (v) query = query.contains(k, [v]); });
       Object.entries(q.lte ?? {}).forEach(([k, v]) => { if (v) query = query.lte(k, v); });
 
       const { column, ascending } = parseSort(q.sort);

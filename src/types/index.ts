@@ -28,7 +28,7 @@ export interface AppUser {
 export interface Member {
   member_id: string;
   name: string;
-  role: string;
+  roles: string[];
   division: string;
   profile_photo: string | null;
   email: string | null;

@@ -10,7 +10,8 @@ Dashboard internal divisi Dokumentasi & Informasi (DOMINFO) OSIS: kalender konte
 dominfo-cms/
 ├── supabase/
 │   ├── schema.sql          # tabel, indeks, trigger, RLS
-│   └── seed.sql            # data contoh
+│   ├── seed.sql            # data contoh
+│   └── migrations/         # migrasi untuk database yang sudah terlanjur dibuat
 ├── public/                 # favicon, _redirects (Netlify)
 ├── src/
 │   ├── components/
@@ -65,6 +66,9 @@ Perintah lain: `npm run build` (build produksi), `npm run preview`, `npm run typ
 6. Admin mengubah role pengguna lain di **Pengaturan > Hak akses**.
 7. Jika email konfirmasi mengganggu saat uji coba: **Authentication > Providers > Email > matikan "Confirm email"**. Untuk produksi, biarkan aktif.
 8. Setelah deploy: **Authentication > URL Configuration**, isi *Site URL* dengan alamat website Anda.
+
+### Peran anggota (multi-pilihan)
+Satu anggota bisa punya beberapa peran sekaligus (mis. Ketua DOMINFO + Editor + Fotografer). Atur dari **Anggota > Ubah**. Jika database Anda dibuat dengan `schema.sql` versi lama (kolom `role` tunggal), jalankan `supabase/migrations/001_member_roles.sql` sekali di SQL Editor.
 
 ### Hak akses (ditegakkan oleh RLS di database)
 

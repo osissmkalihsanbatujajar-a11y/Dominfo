@@ -13,17 +13,18 @@ interface Props { open: boolean; onClose: () => void; item?: Member | null; onSa
 export function MemberFormModal({ open, onClose, item, onSaved }: Props) {
   const toast = useToast();
   const fields = useMemo<FieldDef[]>(() => {
-    const roles = item && !(MEMBER_ROLES as readonly string[]).includes(item.role) ? [item.role, ...MEMBER_ROLES] : [...MEMBER_ROLES];
+    const extra = (item?.roles ?? []).filter((r) => !(MEMBER_ROLES as readonly string[]).includes(r));
+    const roles = [...MEMBER_ROLES, ...extra];
     return [
       { name: 'name', label: 'Nama lengkap', required: true, span: 2 },
-      { name: 'role', label: 'Role', type: 'select', options: toOptions(roles), required: true },
+      { name: 'roles', label: 'Peran', type: 'multicheck', options: toOptions(roles), required: true, hint: 'Boleh memilih lebih dari satu, mis. Ketua DOMINFO + Editor + Fotografer.' },
       { name: 'division', label: 'Divisi', required: true },
       { name: 'email', label: 'Email', type: 'email', placeholder: 'nama@sekolah.sch.id' },
       { name: 'status', label: 'Status', type: 'select', options: toOptions(MEMBER_STATUSES), required: true },
       { name: 'profile_photo', label: 'URL foto profil', type: 'url', span: 2, hint: 'Opsional. Tanpa foto, tampil inisial nama.' },
     ];
   }, [item]);
-  const initial = useMemo(() => buildInitial(fields, item ?? { role: 'Dokumentasi', division: 'DOMINFO', status: 'Active' }), [fields, item]);
+  const initial = useMemo(() => buildInitial(fields, item ?? { roles: ['Anggota'], division: 'DOMINFO', status: 'Active' }), [fields, item]);
 
   return (
     <Modal open={open} onClose={onClose} title={item ? 'Ubah anggota' : 'Tambah anggota'} description="Anggota aktif bisa dipilih sebagai penanggung jawab konten.">

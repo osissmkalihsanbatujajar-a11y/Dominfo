@@ -86,7 +86,7 @@ export const backupSchema = z.object({
 
 export const memberSchema = z.object({
   name: reqText('Nama', 100),
-  role: reqText('Role', 60),
+  roles: z.array(z.string().trim().min(1)).min(1, 'Pilih minimal satu peran'),
   division: reqText('Divisi', 60),
   profile_photo: optUrl('URL foto profil'),
   email: z.string().trim().max(150).refine((v) => v === '' || z.string().email().safeParse(v).success, 'Format email tidak valid'),

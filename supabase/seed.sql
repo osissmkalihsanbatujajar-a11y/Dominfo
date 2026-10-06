@@ -13,15 +13,12 @@ insert into public.categories (name, scope) values
   ('Video','asset'),('Document','asset'),('Other','asset')
 on conflict (scope, name) do nothing;
 
--- Anggota
-insert into public.members (name, role, division, email, status) values
-  ('Raka Pratama',  'Ketua DOMINFO', 'DOMINFO', 'raka@contoh.sch.id',  'Active'),
-  ('Nadia Safitri', 'Wakil',         'DOMINFO', 'nadia@contoh.sch.id', 'Active'),
-  ('Bima Saputra',  'Dokumentasi',   'DOMINFO', 'bima@contoh.sch.id',  'Active'),
-  ('Salsa Putri',   'Videografi',    'DOMINFO', 'salsa@contoh.sch.id', 'Active'),
-  ('Dimas Aditya',  'Desain',        'DOMINFO', 'dimas@contoh.sch.id', 'Active'),
-  ('Alya Rahma',    'Sosial Media',  'DOMINFO', 'alya@contoh.sch.id',  'Active'),
-  ('Fikri Hakim',   'Editor',        'DOMINFO', 'fikri@contoh.sch.id', 'Inactive');
+-- Anggota (hanya divisi DOMINFO)
+insert into public.members (name, roles, division, status) values
+  ('Aidil Mulyana',          array['Ketua DOMINFO','Editor','Fotografer'], 'DOMINFO', 'Active'),
+  ('Zahra Assyifa',          array['Wakil'],                               'DOMINFO', 'Active'),
+  ('Syakhira Putri Hertanto',array['Anggota'],                             'DOMINFO', 'Active'),
+  ('Ririn Riyanti',          array['Anggota'],                             'DOMINFO', 'Active');
 
 -- Kalender konten (tanggal relatif terhadap hari ini supaya dashboard selalu "hidup")
 insert into public.content_calendar
@@ -29,37 +26,37 @@ insert into public.content_calendar
 values
   ('Poster Upacara Senin', 'Poster ajakan tertib upacara untuk satu minggu ke depan.', 'Poster', 'Kegiatan',
     current_date, current_date - 1, 'Instagram', 'Review', 'High',
-    (select member_id from public.members where name = 'Dimas Aditya'),
+    (select member_id from public.members where name = 'Zahra Assyifa'),
     'Senin pagi, kita mulai minggu dengan upacara yang tertib dan semangat!', 'https://contoh.example.com/referensi-poster'),
   ('Recap MPLS', 'Video rekap hari pertama MPLS dengan musik latar.', 'Recap', 'Kegiatan',
     current_date + 2, current_date + 1, 'Instagram', 'In Progress', 'High',
-    (select member_id from public.members where name = 'Salsa Putri'),
+    (select member_id from public.members where name = 'Ririn Riyanti'),
     'Hari pertama yang penuh cerita. Selamat datang siswa baru!', null),
   ('Pengumuman Lomba Kebersihan', 'Informasi teknis lomba kebersihan antar kelas.', 'Announcement', 'Pengumuman',
     current_date + 3, current_date + 2, 'WhatsApp', 'Planned', 'Medium',
-    (select member_id from public.members where name = 'Alya Rahma'),
+    (select member_id from public.members where name = 'Aidil Mulyana'),
     'Lomba Kebersihan Kelas dibuka! Cek ketentuannya di sini.', null),
   ('Dokumentasi Rapat OSIS', 'Foto rapat koordinasi bulanan OSIS.', 'Documentation', 'Kegiatan',
     current_date + 5, current_date + 4, 'Internal', 'Planned', 'Low',
-    (select member_id from public.members where name = 'Bima Saputra'), null, null),
+    (select member_id from public.members where name = 'Syakhira Putri Hertanto'), null, null),
   ('Story Hitung Mundur Lomba', 'Rangkaian 3 story hitung mundur menuju lomba.', 'Story', 'Kegiatan',
     current_date + 6, current_date + 5, 'Instagram', 'Idea', 'Medium',
-    (select member_id from public.members where name = 'Dimas Aditya'), null, null),
+    (select member_id from public.members where name = 'Zahra Assyifa'), null, null),
   ('Tips Belajar Efektif', 'Konten edukasi singkat menjelang ujian.', 'Educational', 'Edukasi',
     current_date + 9, current_date + 7, 'TikTok', 'Idea', 'Low',
-    (select member_id from public.members where name = 'Salsa Putri'), null, null),
+    (select member_id from public.members where name = 'Ririn Riyanti'), null, null),
   ('Reels Behind The Scene Upacara', 'Reels pendek dari sisi petugas upacara.', 'Reels', 'Kegiatan',
     current_date - 2, current_date - 4, 'Instagram', 'Published', 'Medium',
-    (select member_id from public.members where name = 'Salsa Putri'), null, null),
+    (select member_id from public.members where name = 'Ririn Riyanti'), null, null),
   ('Feed Profil Pengurus OSIS', 'Seri feed perkenalan pengurus.', 'Feed', 'Pengumuman',
     current_date + 12, current_date + 10, 'Instagram', 'Scheduled', 'Medium',
-    (select member_id from public.members where name = 'Dimas Aditya'), null, null),
+    (select member_id from public.members where name = 'Zahra Assyifa'), null, null),
   ('Pengumuman Pergantian Jadwal Piket', 'Info jadwal piket baru.', 'Announcement', 'Pengumuman',
     current_date - 1, current_date - 3, 'WhatsApp', 'In Progress', 'Urgent',
-    (select member_id from public.members where name = 'Alya Rahma'), null, null),
+    (select member_id from public.members where name = 'Aidil Mulyana'), null, null),
   ('Video Aftermovie Pensi', 'Aftermovie 2 menit untuk pentas seni.', 'Video', 'Kegiatan',
     current_date + 18, current_date + 14, 'Instagram', 'Planned', 'High',
-    (select member_id from public.members where name = 'Salsa Putri'), null, null);
+    (select member_id from public.members where name = 'Ririn Riyanti'), null, null);
 
 -- Dokumentasi
 insert into public.documentation
@@ -67,26 +64,26 @@ insert into public.documentation
    photo_link, video_link, document_link, thumbnail_url, status, is_important, notes)
 values
   ('Upacara Senin', current_date - 7, 'Lapangan Utama', 'Upacara', 'Dokumentasi upacara bendera rutin hari Senin.',
-    'Bima Saputra', 'Salsa Putri',
+    'Syakhira Putri Hertanto', 'Ririn Riyanti',
     'https://drive.google.com/drive/folders/CONTOH-FOTO-UPACARA', 'https://drive.google.com/drive/folders/CONTOH-VIDEO-UPACARA', null,
     'https://placehold.co/800x500/1e202b/8f90f8?text=Upacara+Senin', 'Completed', false, 'Pilih 20 foto terbaik untuk arsip bulanan.'),
   ('MPLS 2026', current_date - 20, 'Aula Sekolah', 'MPLS', 'Masa Pengenalan Lingkungan Sekolah untuk siswa baru, 3 hari penuh.',
-    'Bima Saputra', 'Salsa Putri',
+    'Syakhira Putri Hertanto', 'Ririn Riyanti',
     'https://drive.google.com/drive/folders/CONTOH-FOTO-MPLS', 'https://drive.google.com/drive/folders/CONTOH-VIDEO-MPLS', 'https://docs.google.com/document/d/CONTOH-RUNDOWN-MPLS',
     'https://placehold.co/800x500/1e202b/8f90f8?text=MPLS+2026', 'Completed', true, 'Dokumentasi penting. Wajib punya minimal 2 backup.'),
   ('Rapat OSIS', current_date - 3, 'Ruang OSIS', 'Rapat', 'Rapat koordinasi program kerja bulanan.',
-    'Bima Saputra', null,
+    'Syakhira Putri Hertanto', null,
     'https://drive.google.com/drive/folders/CONTOH-FOTO-RAPAT', null, 'https://docs.google.com/document/d/CONTOH-NOTULEN-RAPAT',
     null, 'Completed', false, null),
   ('Lomba Kebersihan Kelas', current_date + 8, 'Seluruh Kelas', 'Lomba', 'Penilaian kebersihan kelas oleh juri OSIS.',
-    'Bima Saputra', 'Salsa Putri', null, null, null,
+    'Syakhira Putri Hertanto', 'Ririn Riyanti', null, null, null,
     'https://placehold.co/800x500/1e202b/8f90f8?text=Lomba+Kebersihan', 'Planned', false, 'Koordinasi jadwal dengan wali kelas.'),
   ('Bakti Sosial Ramadhan', current_date - 45, 'Panti Asuhan Setempat', 'Kegiatan Sosial', 'Penyaluran donasi siswa ke panti asuhan.',
-    'Dimas Aditya', 'Salsa Putri',
+    'Zahra Assyifa', 'Ririn Riyanti',
     'https://drive.google.com/drive/folders/CONTOH-FOTO-BAKSOS', null, null,
     null, 'Archived', true, 'Dokumentasi penting untuk laporan pertanggungjawaban.'),
   ('Latihan Ekstrakurikuler Basket', current_date - 1, 'GOR Sekolah', 'Ekstrakurikuler', 'Dokumentasi latihan rutin tim basket.',
-    'Bima Saputra', null, null, null, null, null, 'On Going', false, null);
+    'Syakhira Putri Hertanto', null, null, null, null, null, 'On Going', false, null);
 
 -- Aset
 insert into public.assets (name, category, description, file_url, preview_url, file_type, version) values

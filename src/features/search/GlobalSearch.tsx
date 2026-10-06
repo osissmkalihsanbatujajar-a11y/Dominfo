@@ -41,14 +41,14 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
       const [docs, content, members, assets] = await Promise.all([
         supabase.from('documentation').select('documentation_id,event_name,event_date,category').or(orFilter(['event_name', 'category', 'location'], ['event_date'], s)).limit(5),
         supabase.from('content_calendar').select('content_id,title,scheduled_date,category').or(orFilter(['title', 'category', 'caption'], ['scheduled_date', 'deadline'], s)).limit(5),
-        supabase.from('members').select('member_id,name,role').or(orFilter(['name', 'role'], [], s)).limit(5),
+        supabase.from('members').select('member_id,name,roles').or(orFilter(['name', 'division'], [], s)).limit(5),
         supabase.from('assets').select('asset_id,name,category,version').or(orFilter(['name', 'category', 'file_type'], [], s)).limit(5),
       ]);
       if (!alive) return;
       const out: Hit[] = [];
       docs.data?.forEach((d) => out.push({ key: `d${d.documentation_id}`, group: 'Dokumentasi', title: d.event_name as string, subtitle: `${formatDate(d.event_date as string)} · ${d.category}`, to: `/dokumentasi?open=${d.documentation_id}`, icon: Camera }));
       content.data?.forEach((c) => out.push({ key: `c${c.content_id}`, group: 'Konten', title: c.title as string, subtitle: `${formatDate(c.scheduled_date as string)}${c.category ? ` · ${c.category}` : ''}`, to: `/kalender?open=${c.content_id}`, icon: CalendarDays }));
-      members.data?.forEach((m) => out.push({ key: `m${m.member_id}`, group: 'Anggota', title: m.name as string, subtitle: m.role as string, to: `/anggota?q=${encodeURIComponent(m.name as string)}`, icon: Users }));
+      members.data?.forEach((m) => out.push({ key: `m${m.member_id}`, group: 'Anggota', title: m.name as string, subtitle: (m.roles as string[]).join(', '), to: `/anggota?q=${encodeURIComponent(m.name as string)}`, icon: Users }));
       assets.data?.forEach((a) => out.push({ key: `a${a.asset_id}`, group: 'Aset', title: a.name as string, subtitle: `${a.category} · v${a.version}`, to: `/aset?open=${a.asset_id}`, icon: Boxes }));
       setHits(out);
       setActive(0);

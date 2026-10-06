@@ -24,7 +24,6 @@ import { MemberFormModal } from './MemberFormModal';
 const SORTS = [
   { value: 'name:asc', label: 'Nama A–Z' },
   { value: 'name:desc', label: 'Nama Z–A' },
-  { value: 'role:asc', label: 'Role' },
   { value: 'created_at:desc', label: 'Terbaru ditambahkan' },
 ];
 const FILTERS = { role: '', status: '' };
@@ -39,8 +38,9 @@ export default function MembersPage() {
   const { data, count, loading, error, reload } = useList<Member>({
     table: 'members',
     search: c.debouncedSearch,
-    searchColumns: ['name', 'role', 'division', 'email'],
-    eq: { role: f.role, status: f.status },
+    searchColumns: ['name', 'division', 'email'],
+    eq: { status: f.status },
+    cs: { roles: f.role },
     sort: c.sort,
     page: c.page,
     pageSize: GRID_PAGE_SIZE,
@@ -59,11 +59,11 @@ export default function MembersPage() {
 
       <div className="glass mb-5 space-y-3 rounded-2xl p-3 sm:p-4">
         <div className="flex flex-col gap-3 lg:flex-row">
-          <SearchInput value={c.search} onChange={c.setSearch} placeholder="Cari nama, role, email…" label="Cari anggota" className="flex-1" />
+          <SearchInput value={c.search} onChange={c.setSearch} placeholder="Cari nama, divisi, email…" label="Cari anggota" className="flex-1" />
           <Select className="lg:w-48" aria-label="Urutkan" value={c.sort} onChange={(e) => c.setSort(e.target.value)} options={SORTS} />
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Select aria-label="Filter role" value={f.role} onChange={(e) => c.setFilter('role', e.target.value)} placeholder="Semua role" options={toOptions(MEMBER_ROLES)} />
+          <Select aria-label="Filter peran" value={f.role} onChange={(e) => c.setFilter('role', e.target.value)} placeholder="Semua peran" options={toOptions(MEMBER_ROLES)} />
           <Select aria-label="Filter status" value={f.status} onChange={(e) => c.setFilter('status', e.target.value)} placeholder="Semua status" options={toOptions(MEMBER_STATUSES)} />
           {c.activeCount > 0 && <Button onClick={c.reset}>Reset filter ({c.activeCount})</Button>}
         </div>
@@ -84,9 +84,10 @@ export default function MembersPage() {
               <Avatar name={m.name} src={m.profile_photo} size="lg" />
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-sm font-semibold text-ink-100">{m.name}</h3>
-                <p className="text-xs text-ink-400">{m.role} · {m.division}</p>
+                <p className="text-xs text-ink-400">{m.division}</p>
                 {m.email && <a href={`mailto:${m.email}`} className="mt-1 flex items-center gap-1.5 truncate text-xs text-iris-300 hover:underline"><Mail className="h-3 w-3 shrink-0" aria-hidden />{m.email}</a>}
                 <div className="mt-2 flex flex-wrap gap-1.5">
+                  {m.roles.map((r) => <NeutralBadge key={r}>{r}</NeutralBadge>)}
                   {m.status === 'Active' ? <Badge className="bg-emerald-500/15 text-emerald-300 ring-emerald-400/25">Aktif</Badge> : <NeutralBadge>Nonaktif</NeutralBadge>}
                 </div>
               </div>

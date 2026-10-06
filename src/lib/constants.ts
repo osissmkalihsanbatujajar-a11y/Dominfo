@@ -14,7 +14,7 @@ export const FILE_TYPES = ['PNG', 'JPG', 'SVG', 'PDF', 'ZIP', 'PSD', 'AI', 'Figm
 export const BACKUP_TYPES = ['Primary', 'Secondary', 'Archive'] as const;
 export const STORAGE_PROVIDERS = ['Google Drive', 'OneDrive', 'Other'] as const;
 
-export const MEMBER_ROLES = ['Ketua DOMINFO', 'Wakil', 'Dokumentasi', 'Videografi', 'Desain', 'Sosial Media', 'Editor'] as const;
+export const MEMBER_ROLES = ['Ketua DOMINFO', 'Wakil', 'Dokumentasi', 'Videografi', 'Desain', 'Sosial Media', 'Editor', 'Fotografer', 'Anggota'] as const;
 export const MEMBER_STATUSES = ['Active', 'Inactive'] as const;
 export const USER_ROLES = ['admin', 'editor', 'viewer'] as const;
 

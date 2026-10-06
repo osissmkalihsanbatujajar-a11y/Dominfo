@@ -33,7 +33,7 @@ export function ContentFormModal({ open, onClose, item, defaults, onSaved }: Pro
       { name: 'deadline', label: 'Deadline pengerjaan', type: 'date', hint: 'Tidak boleh setelah tanggal publikasi.' },
       { name: 'status', label: 'Status', type: 'select', options: toOptions(CONTENT_STATUSES), required: true },
       { name: 'priority', label: 'Prioritas', type: 'select', options: toOptions(PRIORITIES), required: true },
-      { name: 'assignee', label: 'Penanggung jawab', type: 'select', emptyLabel: 'Belum ditentukan', options: members.map((m) => ({ value: m.member_id, label: `${m.name} (${m.role})` })) },
+      { name: 'assignee', label: 'Penanggung jawab', type: 'select', emptyLabel: 'Belum ditentukan', options: members.map((m) => ({ value: m.member_id, label: `${m.name} (${m.roles.join(', ')})` })) },
       { name: 'category', label: 'Kategori', type: 'select', emptyLabel: 'Tanpa kategori', options: toOptions(cats) },
       { name: 'description', label: 'Deskripsi', type: 'textarea' },
       { name: 'caption', label: 'Caption', type: 'textarea' },

@@ -24,7 +24,7 @@ create table if not exists public.users (
 create table if not exists public.members (
   member_id      uuid primary key default gen_random_uuid(),
   name           text not null,
-  role           text not null,
+  roles          text[] not null check (cardinality(roles) > 0), -- satu anggota boleh punya banyak peran
   division       text not null default 'DOMINFO',
   profile_photo  text,
   email          text,
@@ -152,6 +152,7 @@ create index if not exists idx_backups_doc         on public.backups (documentat
 create index if not exists idx_backups_date        on public.backups (backup_date desc);
 
 create index if not exists idx_members_name_trgm   on public.members using gin (name extensions.gin_trgm_ops);
+create index if not exists idx_members_roles       on public.members using gin (roles);
 create index if not exists idx_logs_created        on public.activity_logs (created_at desc);
 
 -- ---------------------------------------------------------------------

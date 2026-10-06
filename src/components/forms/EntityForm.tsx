@@ -10,7 +10,7 @@ import type { Option } from '@/types';
 export interface FieldDef {
   name: string;
   label: string;
-  type?: 'text' | 'textarea' | 'select' | 'date' | 'url' | 'email' | 'checkbox';
+  type?: 'text' | 'textarea' | 'select' | 'date' | 'url' | 'email' | 'checkbox' | 'multicheck';
   options?: Option[];
   /** Untuk select: teks opsi kosong. Tanpa ini, select tidak punya opsi kosong. */
   emptyLabel?: string;
@@ -20,7 +20,7 @@ export interface FieldDef {
   span?: 1 | 2;
 }
 
-type Values = Record<string, string | boolean>;
+type Values = Record<string, string | boolean | string[]>;
 
 interface Props {
   id: string;
@@ -38,6 +38,7 @@ export function buildInitial(fields: FieldDef[], source: Record<string, unknown>
   for (const f of fields) {
     const v = source[f.name];
     if (f.type === 'checkbox') out[f.name] = Boolean(v);
+    else if (f.type === 'multicheck') out[f.name] = Array.isArray(v) ? v.map(String) : [];
     else out[f.name] = v === null || v === undefined ? '' : String(v);
   }
   return out;
@@ -50,7 +51,7 @@ export function EntityForm({ id, fields, schema, initial, submitLabel, onSubmit,
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  const set = (name: string, v: string | boolean) => {
+  const set = (name: string, v: string | boolean | string[]) => {
     setValues((s) => ({ ...s, [name]: v }));
     if (errors[name]) setErrors((e) => ({ ...e, [name]: '' }));
   };
@@ -100,6 +101,32 @@ export function EntityForm({ id, fields, schema, initial, submitLabel, onSubmit,
           'aria-describedby': err ? `${fid}-error` : undefined,
         } as const;
         const span = f.span === 2 || f.type === 'textarea' || f.type === 'checkbox' ? 'sm:col-span-2' : '';
+
+        if (f.type === 'multicheck') {
+          const selected = (values[f.name] as string[]) ?? [];
+          return (
+            <fieldset key={f.name} className="sm:col-span-2" aria-describedby={err ? `${fid}-error` : undefined}>
+              <legend className="mb-1.5 text-sm font-medium text-ink-200">
+                {f.label}
+                {f.required && <span className="text-rose-400" aria-hidden> *</span>}
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {(f.options ?? []).map((o, i) => {
+                  const on = selected.includes(o.value);
+                  return (
+                    <label key={o.value} className={cn('inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl px-3 text-sm ring-1 ring-inset transition', on ? 'bg-iris-500/15 text-iris-300 ring-iris-400/40' : 'bg-white/[0.03] text-ink-300 ring-white/10 hover:bg-white/[0.07]')}>
+                      <input id={i === 0 ? fid : undefined} type="checkbox" className="h-4 w-4 accent-iris-500" checked={on}
+                        onChange={() => set(f.name, on ? selected.filter((x) => x !== o.value) : [...selected, o.value])} />
+                      {o.label}
+                    </label>
+                  );
+                })}
+              </div>
+              {f.hint && !err && <p className="mt-1 text-xs text-ink-400">{f.hint}</p>}
+              {err && <p id={`${fid}-error`} role="alert" className="mt-1 text-xs text-rose-300">{err}</p>}
+            </fieldset>
+          );
+        }
 
         if (f.type === 'checkbox') {
           return (
