@@ -22,41 +22,18 @@ insert into public.members (name, roles, division, status) values
 
 -- Kalender konten (tanggal relatif terhadap hari ini supaya dashboard selalu "hidup")
 insert into public.content_calendar
-  (title, description, content_type, category, scheduled_date, deadline, platform, status, priority, assignee, caption, reference_link)
+  (title, description, content_types, categories, scheduled_date, deadline, platforms, status, priority, assignees, caption, reference_link)
 values
-  ('Poster Upacara Senin', 'Poster ajakan tertib upacara untuk satu minggu ke depan.', 'Poster', 'Kegiatan',
-    current_date, current_date - 1, 'Instagram', 'Review', 'High',
-    (select member_id from public.members where name = 'Zahra Assyifa'),
-    'Senin pagi, kita mulai minggu dengan upacara yang tertib dan semangat!', 'https://contoh.example.com/referensi-poster'),
-  ('Recap MPLS', 'Video rekap hari pertama MPLS dengan musik latar.', 'Recap', 'Kegiatan',
-    current_date + 2, current_date + 1, 'Instagram', 'In Progress', 'High',
-    (select member_id from public.members where name = 'Ririn Riyanti'),
-    'Hari pertama yang penuh cerita. Selamat datang siswa baru!', null),
-  ('Pengumuman Lomba Kebersihan', 'Informasi teknis lomba kebersihan antar kelas.', 'Announcement', 'Pengumuman',
-    current_date + 3, current_date + 2, 'WhatsApp', 'Planned', 'Medium',
-    (select member_id from public.members where name = 'Aidil Mulyana'),
-    'Lomba Kebersihan Kelas dibuka! Cek ketentuannya di sini.', null),
-  ('Dokumentasi Rapat OSIS', 'Foto rapat koordinasi bulanan OSIS.', 'Documentation', 'Kegiatan',
-    current_date + 5, current_date + 4, 'Internal', 'Planned', 'Low',
-    (select member_id from public.members where name = 'Syakhira Putri Hertanto'), null, null),
-  ('Story Hitung Mundur Lomba', 'Rangkaian 3 story hitung mundur menuju lomba.', 'Story', 'Kegiatan',
-    current_date + 6, current_date + 5, 'Instagram', 'Idea', 'Medium',
-    (select member_id from public.members where name = 'Zahra Assyifa'), null, null),
-  ('Tips Belajar Efektif', 'Konten edukasi singkat menjelang ujian.', 'Educational', 'Edukasi',
-    current_date + 9, current_date + 7, 'TikTok', 'Idea', 'Low',
-    (select member_id from public.members where name = 'Ririn Riyanti'), null, null),
-  ('Reels Behind The Scene Upacara', 'Reels pendek dari sisi petugas upacara.', 'Reels', 'Kegiatan',
-    current_date - 2, current_date - 4, 'Instagram', 'Published', 'Medium',
-    (select member_id from public.members where name = 'Ririn Riyanti'), null, null),
-  ('Feed Profil Pengurus OSIS', 'Seri feed perkenalan pengurus.', 'Feed', 'Pengumuman',
-    current_date + 12, current_date + 10, 'Instagram', 'Scheduled', 'Medium',
-    (select member_id from public.members where name = 'Zahra Assyifa'), null, null),
-  ('Pengumuman Pergantian Jadwal Piket', 'Info jadwal piket baru.', 'Announcement', 'Pengumuman',
-    current_date - 1, current_date - 3, 'WhatsApp', 'In Progress', 'Urgent',
-    (select member_id from public.members where name = 'Aidil Mulyana'), null, null),
-  ('Video Aftermovie Pensi', 'Aftermovie 2 menit untuk pentas seni.', 'Video', 'Kegiatan',
-    current_date + 18, current_date + 14, 'Instagram', 'Planned', 'High',
-    (select member_id from public.members where name = 'Ririn Riyanti'), null, null);
+  ('Poster Upacara Senin', 'Poster ajakan tertib upacara untuk satu minggu ke depan.', array['Poster','Story'], array['Kegiatan'], current_date, current_date - 1, array['Instagram','WhatsApp'], 'Review', 'High', array[(select member_id from public.members where name = 'Zahra Assyifa'), (select member_id from public.members where name = 'Aidil Mulyana')], 'Senin pagi, kita mulai minggu dengan upacara yang tertib dan semangat!', 'https://contoh.example.com/referensi-poster'),
+  ('Recap MPLS', 'Video rekap hari pertama MPLS dengan musik latar.', array['Recap','Video'], array['Kegiatan'], current_date + 2, current_date + 1, array['Instagram','TikTok'], 'In Progress', 'High', array[(select member_id from public.members where name = 'Ririn Riyanti'), (select member_id from public.members where name = 'Aidil Mulyana')], 'Hari pertama yang penuh cerita. Selamat datang siswa baru!', null),
+  ('Pengumuman Lomba Kebersihan', 'Informasi teknis lomba kebersihan antar kelas.', array['Announcement'], array['Pengumuman'], current_date + 3, current_date + 2, array['WhatsApp','Instagram'], 'Planned', 'Medium', array[(select member_id from public.members where name = 'Aidil Mulyana')], 'Lomba Kebersihan Kelas dibuka! Cek ketentuannya di sini.', null),
+  ('Dokumentasi Rapat OSIS', 'Foto rapat koordinasi bulanan OSIS.', array['Documentation'], array['Kegiatan'], current_date + 5, current_date + 4, array['Internal'], 'Planned', 'Low', array[(select member_id from public.members where name = 'Syakhira Putri Hertanto')], null, null),
+  ('Story Hitung Mundur Lomba', 'Rangkaian 3 story hitung mundur menuju lomba.', array['Story'], array['Kegiatan'], current_date + 6, current_date + 5, array['Instagram'], 'Idea', 'Medium', array[(select member_id from public.members where name = 'Zahra Assyifa')], null, null),
+  ('Tips Belajar Efektif', 'Konten edukasi singkat menjelang ujian.', array['Educational','Reels'], array['Edukasi'], current_date + 9, current_date + 7, array['TikTok','Instagram'], 'Idea', 'Low', array[(select member_id from public.members where name = 'Ririn Riyanti')], null, null),
+  ('Reels Behind The Scene Upacara', 'Reels pendek dari sisi petugas upacara.', array['Reels'], array['Kegiatan'], current_date - 2, current_date - 4, array['Instagram'], 'Published', 'Medium', array[(select member_id from public.members where name = 'Ririn Riyanti')], null, null),
+  ('Feed Profil Pengurus OSIS', 'Seri feed perkenalan pengurus.', array['Feed'], array['Pengumuman'], current_date + 12, current_date + 10, array['Instagram'], 'Scheduled', 'Medium', array[(select member_id from public.members where name = 'Zahra Assyifa')], null, null),
+  ('Pengumuman Pergantian Jadwal Piket', 'Info jadwal piket baru.', array['Announcement'], array['Pengumuman'], current_date - 1, current_date - 3, array['WhatsApp'], 'In Progress', 'Urgent', array[(select member_id from public.members where name = 'Aidil Mulyana')], null, null),
+  ('Video Aftermovie Pensi', 'Aftermovie 2 menit untuk pentas seni.', array['Video'], array['Kegiatan'], current_date + 18, current_date + 14, array['Instagram'], 'Planned', 'High', array[(select member_id from public.members where name = 'Ririn Riyanti'), (select member_id from public.members where name = 'Zahra Assyifa')], null, null);
 
 -- Dokumentasi
 insert into public.documentation

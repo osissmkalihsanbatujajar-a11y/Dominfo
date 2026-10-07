@@ -30,14 +30,14 @@ export const contentSchema = z
   .object({
     title: reqText('Judul', 150),
     description: optText('Deskripsi'),
-    content_type: pick(CONTENT_TYPES, 'Tipe konten'),
-    category: optText('Kategori', 80),
+    content_types: z.array(pick(CONTENT_TYPES, 'Tipe konten')).min(1, 'Pilih minimal satu tipe konten'),
+    categories: z.array(z.string().trim().min(1).max(80)),
     scheduled_date: reqDate('Tanggal publikasi'),
     deadline: optDate('Deadline'),
-    platform: pick(PLATFORMS, 'Platform'),
+    platforms: z.array(pick(PLATFORMS, 'Platform')).min(1, 'Pilih minimal satu platform'),
     status: pick(CONTENT_STATUSES, 'Status'),
     priority: pick(PRIORITIES, 'Prioritas'),
-    assignee: z.string(),
+    assignees: z.array(z.string()),
     caption: optText('Caption', 3000),
     reference_link: optUrl('Link referensi'),
   })

@@ -7,6 +7,7 @@ import { Thumbnail } from '@/components/ui/Thumbnail';
 import { Avatar } from '@/components/ui/Avatar';
 import { BackupBadge, ContentStatusBadge } from '@/components/ui/Badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useMembers } from '@/hooks/useLookups';
 import { CONTENT_STATUS_STYLE, CONTENT_STATUSES } from '@/lib/constants';
 import { cn, daysUntil, formatDate, formatLongDate } from '@/lib/utils';
 import { RemindersList } from '@/features/reminders/RemindersList';
@@ -35,6 +36,7 @@ type Modal = 'content' | 'doc' | 'asset' | 'backup' | null;
 
 export default function DashboardPage() {
   const { profile, canWrite } = useAuth();
+  const { members } = useMembers(false);
   const [tick, setTick] = useState(0);
   const [modal, setModal] = useState<Modal>(null);
   const d = useDashboard(tick);
@@ -106,8 +108,8 @@ export default function DashboardPage() {
                     <li key={c.content_id}>
                       <Link to={`/kalender?open=${c.content_id}`} className="flex min-h-14 items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white/5">
                         <span className="w-14 shrink-0 text-center"><span className="block text-lg font-semibold leading-none text-ink-100">{c.scheduled_date.slice(8, 10)}</span><span className="text-[11px] text-ink-400">{n === 0 ? 'Hari ini' : n === 1 ? 'Besok' : `${n} hari`}</span></span>
-                        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-ink-100">{c.title}</span><span className="block text-xs text-ink-400">{c.platform} · {c.content_type}</span></span>
-                        {c.member && <Avatar name={c.member.name} src={c.member.profile_photo} size="sm" className="hidden sm:grid" />}
+                        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-ink-100">{c.title}</span><span className="block text-xs text-ink-400">{c.platforms.join(', ')} · {c.content_types.join(', ')}</span></span>
+                        {(() => { const m = members.find((x) => x.member_id === c.assignees[0]); return m ? <Avatar name={m.name} src={m.profile_photo} size="sm" className="hidden sm:grid" /> : null; })()}
                         <ContentStatusBadge status={c.status} />
                       </Link>
                     </li>

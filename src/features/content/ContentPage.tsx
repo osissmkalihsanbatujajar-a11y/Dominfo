@@ -21,7 +21,6 @@ import { useOpenParam } from '@/hooks/useOpenParam';
 import { CONTENT_STATUSES, PAGE_SIZE, PLATFORMS, PRIORITIES } from '@/lib/constants';
 import { addDays, formatDate, formatDateRange, formatMonth, monthGrid, parseYMD, startOfWeek, toYMD, todayYMD } from '@/lib/utils';
 import { contentService } from '@/services';
-import { supabase } from '@/supabase/client';
 import type { ContentItem } from '@/types';
 import { ContentDetail } from './ContentDetail';
 import { ContentFormModal } from './ContentFormModal';
@@ -41,6 +40,7 @@ export default function ContentPage() {
   const { canWrite, isAdmin } = useAuth();
   const toast = useToast();
   const { members } = useMembers(false);
+  const nameOf = (c: ContentItem) => c.assignees.map((id) => members.find((m) => m.member_id === id)?.name).filter(Boolean).join(', ');
   const [params] = useSearchParams();
   const startDate = params.get('date');
 
@@ -65,11 +65,11 @@ export default function ContentPage() {
   const paged = view === 'list';
   const { data, count, loading, error, reload } = useList<ContentItem>({
     table: 'content_calendar',
-    select: '*, member:members(name,profile_photo)',
     search: c.debouncedSearch,
-    searchColumns: ['title', 'description', 'caption', 'category'],
+    searchColumns: ['title', 'description', 'caption'],
     searchDateColumns: ['scheduled_date', 'deadline'],
-    eq: { status: f.status, platform: f.platform, priority: f.priority, assignee: f.assignee },
+    eq: { status: f.status, priority: f.priority },
+    cs: { platforms: f.platform, assignees: f.assignee },
     gte: { scheduled_date: range.from },
     lte: { scheduled_date: range.to },
     sort: paged ? c.sort : 'scheduled_date:asc',
@@ -84,10 +84,7 @@ export default function ContentPage() {
   const [detail, setDetail] = useState<ContentItem | null>(null);
   const [deleting, setDeleting] = useState<ContentItem | null>(null);
 
-  useOpenParam((id) => {
-    supabase.from('content_calendar').select('*, member:members(name,profile_photo)').eq('content_id', id).maybeSingle()
-      .then(({ data: row }) => { if (row) setDetail(row as unknown as ContentItem); });
-  });
+  useOpenParam((id) => { contentService.getById(id).then((row) => row && setDetail(row)); });
 
   const openCreate = (ymd?: string) => { setEditing(null); setDefaults(ymd ? { scheduled_date: ymd } : undefined); setFormOpen(true); };
   const openEdit = (item: ContentItem) => { setDetail(null); setEditing(item); setDefaults(undefined); setFormOpen(true); };
@@ -147,7 +144,7 @@ export default function ContentPage() {
       {loading ? <ListSkeleton rows={6} /> : view === 'month' ? (
         <>
           <MonthView anchor={anchor} items={data} selected={selected} onSelect={setSelected} onOpen={setDetail} />
-          <DayPanel ymd={selected} items={data} canWrite={canWrite} onOpen={setDetail} onAdd={openCreate} />
+          <DayPanel ymd={selected} items={data} canWrite={canWrite} onOpen={setDetail} onAdd={openCreate} nameOf={nameOf} />
           <div className="mt-4"><StatusLegend /></div>
         </>
       ) : view === 'week' ? (
@@ -173,10 +170,10 @@ export default function ContentPage() {
                     <td className="max-w-[260px] px-4 py-3"><button onClick={() => setDetail(i)} className="truncate text-left font-medium text-ink-100 hover:text-iris-300">{i.title}</button></td>
                     <td className="whitespace-nowrap px-4 py-3 text-ink-300">{formatDate(i.scheduled_date)}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-ink-300">{formatDate(i.deadline)}</td>
-                    <td className="px-4 py-3"><NeutralBadge>{i.platform}</NeutralBadge></td>
+                    <td className="px-4 py-3"><div className="flex flex-wrap gap-1">{i.platforms.map((p) => <NeutralBadge key={p}>{p}</NeutralBadge>)}</div></td>
                     <td className="px-4 py-3"><ContentStatusBadge status={i.status} /></td>
                     <td className="px-4 py-3"><PriorityBadge priority={i.priority} /></td>
-                    <td className="px-4 py-3 text-ink-300">{i.member?.name ?? '—'}</td>
+                    <td className="max-w-[180px] px-4 py-3 text-ink-300">{nameOf(i) || '—'}</td>
                     <td className="px-4 py-2">{rowActions(i)}</td>
                   </tr>
                 ))}
@@ -188,7 +185,8 @@ export default function ContentPage() {
               <li key={i.content_id} className="glass rounded-2xl p-4">
                 <button onClick={() => setDetail(i)} className="text-left text-sm font-semibold text-ink-100">{i.title}</button>
                 <p className="mt-1 text-xs text-ink-400">Tayang {formatDate(i.scheduled_date)} · Deadline {formatDate(i.deadline)}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5"><ContentStatusBadge status={i.status} /><PriorityBadge priority={i.priority} /><NeutralBadge>{i.platform}</NeutralBadge></div>
+                <div className="mt-2 flex flex-wrap gap-1.5"><ContentStatusBadge status={i.status} /><PriorityBadge priority={i.priority} />{i.platforms.map((p) => <NeutralBadge key={p}>{p}</NeutralBadge>)}</div>
+                {nameOf(i) && <p className="mt-2 text-xs text-ink-400">PJ: {nameOf(i)}</p>}
                 {(canWrite || isAdmin) && <div className="mt-2 border-t border-white/5 pt-2">{rowActions(i)}</div>}
               </li>
             ))}

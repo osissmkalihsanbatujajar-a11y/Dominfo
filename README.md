@@ -70,6 +70,9 @@ Perintah lain: `npm run build` (build produksi), `npm run preview`, `npm run typ
 ### Peran anggota (multi-pilihan)
 Satu anggota bisa punya beberapa peran sekaligus (mis. Ketua DOMINFO + Editor + Fotografer). Atur dari **Anggota > Ubah**. Jika database Anda dibuat dengan `schema.sql` versi lama (kolom `role` tunggal), jalankan `supabase/migrations/001_member_roles.sql` sekali di SQL Editor.
 
+### Konten multi-pilihan
+Tipe konten, platform, kategori, dan penanggung jawab pada konten bisa dipilih lebih dari satu. Jika database Anda dibuat dengan `schema.sql` versi lama, jalankan `supabase/migrations/002_content_multi.sql` sekali (setelah `001` bila belum).
+
 ### Hak akses (ditegakkan oleh RLS di database)
 
 | Role | Akses |

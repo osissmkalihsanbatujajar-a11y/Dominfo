@@ -7,6 +7,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { ContentStatusBadge, NeutralBadge, PriorityBadge } from '@/components/ui/Badge';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useMembers } from '@/hooks/useLookups';
 import { CONTENT_STATUSES } from '@/lib/constants';
 import { daysUntil, formatDate, isSafeUrl } from '@/lib/utils';
 import { toMessage } from '@/services/errors';
@@ -24,6 +25,7 @@ interface Props {
 export function ContentDetail({ item, onClose, onEdit, onDelete, onChanged }: Props) {
   const { canWrite, isAdmin } = useAuth();
   const toast = useToast();
+  const { members } = useMembers(false);
   const [status, setStatus] = useState<ContentStatus | null>(null);
   if (!item) return null;
   const current = status ?? item.status;
@@ -56,9 +58,9 @@ export function ContentDetail({ item, onClose, onEdit, onDelete, onChanged }: Pr
       <div className="flex flex-wrap items-center gap-2">
         <ContentStatusBadge status={current} />
         <PriorityBadge priority={item.priority} />
-        <NeutralBadge>{item.content_type}</NeutralBadge>
-        <NeutralBadge>{item.platform}</NeutralBadge>
-        {item.category && <NeutralBadge>{item.category}</NeutralBadge>}
+        {item.content_types.map((t) => <NeutralBadge key={t}>{t}</NeutralBadge>)}
+        {item.platforms.map((p) => <NeutralBadge key={p}>{p}</NeutralBadge>)}
+        {item.categories.map((c) => <NeutralBadge key={c}>#{c}</NeutralBadge>)}
       </div>
 
       {canWrite && (
@@ -78,7 +80,13 @@ export function ContentDetail({ item, onClose, onEdit, onDelete, onChanged }: Pr
         </div>
         <div>
           <dt className="text-xs text-ink-400">Penanggung jawab</dt>
-          <dd className="flex items-center gap-2 text-ink-100">{item.member ? <><Avatar name={item.member.name} src={item.member.profile_photo} size="sm" />{item.member.name}</> : 'Belum ditentukan'}</dd>
+          <dd className="flex flex-wrap items-center gap-x-4 gap-y-2 text-ink-100">
+            {item.assignees.length === 0 && 'Belum ditentukan'}
+            {item.assignees.map((id) => {
+              const m = members.find((x) => x.member_id === id);
+              return m ? <span key={id} className="inline-flex items-center gap-2"><Avatar name={m.name} src={m.profile_photo} size="sm" />{m.name}</span> : null;
+            })}
+          </dd>
         </div>
         <div>
           <dt className="text-xs text-ink-400">Link referensi</dt>

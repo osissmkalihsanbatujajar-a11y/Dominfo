@@ -20,21 +20,27 @@ interface Props {
 
 export function ContentFormModal({ open, onClose, item, defaults, onSaved }: Props) {
   const toast = useToast();
-  const { members } = useMembers();
+  const { members } = useMembers(false);
   const categories = useCategoryNames('content');
 
   const fields = useMemo<FieldDef[]>(() => {
-    const cats = item?.category && !categories.includes(item.category) ? [item.category, ...categories] : categories;
+    const cats = [...categories, ...(item?.categories ?? []).filter((c) => !categories.includes(c))];
+    // Anggota nonaktif hanya muncul jika sebelumnya sudah menjadi penanggung jawab konten ini.
+    const people = members.filter((m) => m.status === 'Active' || item?.assignees.includes(m.member_id));
     return [
       { name: 'title', label: 'Judul konten', required: true, span: 2, placeholder: 'mis. Poster Upacara Senin' },
-      { name: 'content_type', label: 'Tipe konten', type: 'select', options: toOptions(CONTENT_TYPES), required: true },
-      { name: 'platform', label: 'Platform', type: 'select', options: toOptions(PLATFORMS), required: true },
+      { name: 'content_types', label: 'Tipe konten', type: 'multicheck', options: toOptions(CONTENT_TYPES), required: true, hint: 'Boleh lebih dari satu, mis. Poster + Story.' },
+      { name: 'platforms', label: 'Platform', type: 'multicheck', options: toOptions(PLATFORMS), required: true, hint: 'Boleh lebih dari satu.' },
       { name: 'scheduled_date', label: 'Tanggal publikasi', type: 'date', required: true },
       { name: 'deadline', label: 'Deadline pengerjaan', type: 'date', hint: 'Tidak boleh setelah tanggal publikasi.' },
       { name: 'status', label: 'Status', type: 'select', options: toOptions(CONTENT_STATUSES), required: true },
       { name: 'priority', label: 'Prioritas', type: 'select', options: toOptions(PRIORITIES), required: true },
-      { name: 'assignee', label: 'Penanggung jawab', type: 'select', emptyLabel: 'Belum ditentukan', options: members.map((m) => ({ value: m.member_id, label: `${m.name} (${m.roles.join(', ')})` })) },
-      { name: 'category', label: 'Kategori', type: 'select', emptyLabel: 'Tanpa kategori', options: toOptions(cats) },
+      {
+        name: 'assignees', label: 'Penanggung jawab', type: 'multicheck',
+        options: people.map((m) => ({ value: m.member_id, label: m.status === 'Active' ? m.name : `${m.name} (nonaktif)` })),
+        hint: people.length ? 'Pilih satu atau lebih anggota. Boleh dikosongkan.' : 'Belum ada anggota aktif. Tambahkan dulu di halaman Anggota.',
+      },
+      { name: 'categories', label: 'Kategori', type: 'multicheck', options: toOptions(cats), hint: 'Opsional. Boleh lebih dari satu.' },
       { name: 'description', label: 'Deskripsi', type: 'textarea' },
       { name: 'caption', label: 'Caption', type: 'textarea' },
       { name: 'reference_link', label: 'Link referensi', type: 'url', span: 2, placeholder: 'https://…' },
@@ -42,7 +48,7 @@ export function ContentFormModal({ open, onClose, item, defaults, onSaved }: Pro
   }, [members, categories, item]);
 
   const initial = useMemo(
-    () => buildInitial(fields, item ?? { content_type: 'Poster', platform: 'Instagram', status: 'Idea', priority: 'Medium', ...defaults }),
+    () => buildInitial(fields, item ?? { content_types: ['Poster'], platforms: ['Instagram'], status: 'Idea', priority: 'Medium', ...defaults }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [fields, item, defaults],
   );

@@ -48,20 +48,19 @@ export interface ContentItem {
   content_id: string;
   title: string;
   description: string | null;
-  content_type: ContentType;
-  category: string | null;
+  content_types: ContentType[];
+  categories: string[];
   scheduled_date: string;
   deadline: string | null;
-  platform: Platform;
+  platforms: Platform[];
   status: ContentStatus;
   priority: Priority;
-  assignee: string | null;
+  assignees: string[];
   caption: string | null;
   reference_link: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  member?: Pick<Member, 'name' | 'profile_photo'> | null;
 }
 
 export interface DocumentationItem {

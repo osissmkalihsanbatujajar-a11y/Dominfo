@@ -48,17 +48,18 @@ create table if not exists public.content_calendar (
   content_id      uuid primary key default gen_random_uuid(),
   title           text not null,
   description     text,
-  content_type    text not null default 'Poster'
-    check (content_type in ('Poster','Story','Feed','Reels','Video','Announcement','Recap','Documentation','Educational','Other')),
-  category        text,
+  -- Kolom multi-pilihan (array): satu konten bisa punya beberapa tipe/kategori/platform/penanggung jawab
+  content_types   text[] not null default array['Poster']
+    check (cardinality(content_types) > 0 and content_types <@ array['Poster','Story','Feed','Reels','Video','Announcement','Recap','Documentation','Educational','Other']),
+  categories      text[] not null default '{}',
   scheduled_date  date not null,
   deadline        date,
-  platform        text not null default 'Instagram'
-    check (platform in ('Instagram','WhatsApp','TikTok','Website','Internal','Other')),
+  platforms       text[] not null default array['Instagram']
+    check (cardinality(platforms) > 0 and platforms <@ array['Instagram','WhatsApp','TikTok','Website','Internal','Other']),
   status          text not null default 'Idea'
     check (status in ('Idea','Planned','In Progress','Review','Scheduled','Published','Cancelled')),
   priority        text not null default 'Medium' check (priority in ('Low','Medium','High','Urgent')),
-  assignee        uuid references public.members (member_id) on delete set null,
+  assignees       uuid[] not null default '{}', -- berisi member_id (dibersihkan otomatis saat anggota dihapus)
   caption         text,
   reference_link  text,
   created_by      uuid default auth.uid() references public.users (id) on delete set null,
@@ -134,8 +135,9 @@ create table if not exists public.activity_logs (
 create index if not exists idx_content_scheduled   on public.content_calendar (scheduled_date);
 create index if not exists idx_content_deadline    on public.content_calendar (deadline);
 create index if not exists idx_content_status      on public.content_calendar (status);
-create index if not exists idx_content_platform    on public.content_calendar (platform);
-create index if not exists idx_content_assignee    on public.content_calendar (assignee);
+create index if not exists idx_content_platforms   on public.content_calendar using gin (platforms);
+create index if not exists idx_content_assignees   on public.content_calendar using gin (assignees);
+create index if not exists idx_content_types       on public.content_calendar using gin (content_types);
 create index if not exists idx_content_title_trgm  on public.content_calendar using gin (title extensions.gin_trgm_ops);
 
 create index if not exists idx_doc_event_date      on public.documentation (event_date desc);
@@ -177,6 +179,22 @@ begin
     execute format('create trigger trg_%1$s_updated_at before update on public.%1$s for each row execute function public.set_updated_at()', t);
   end loop;
 end $$;
+
+-- Saat anggota dihapus, lepaskan dari penanggung jawab konten
+create or replace function public.remove_member_from_content() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  update public.content_calendar
+     set assignees = array_remove(assignees, old.member_id)
+   where old.member_id = any (assignees);
+  return old;
+end;
+$$;
+
+drop trigger if exists trg_members_cleanup on public.members;
+create trigger trg_members_cleanup
+  before delete on public.members
+  for each row execute function public.remove_member_from_content();
 
 -- Helper role (dipakai oleh RLS)
 create or replace function public.app_role() returns text

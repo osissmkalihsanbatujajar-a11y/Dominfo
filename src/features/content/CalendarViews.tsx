@@ -113,7 +113,7 @@ export function WeekView({ anchor, items, canWrite, onOpen, onAdd }: WeekProps) 
   );
 }
 
-export function DayPanel({ ymd, items, canWrite, onOpen, onAdd }: { ymd: string; items: ContentItem[]; canWrite: boolean; onOpen: (c: ContentItem) => void; onAdd: (ymd: string) => void }) {
+export function DayPanel({ ymd, items, canWrite, onOpen, onAdd, nameOf }: { ymd: string; items: ContentItem[]; canWrite: boolean; onOpen: (c: ContentItem) => void; onAdd: (ymd: string) => void; nameOf: (c: ContentItem) => string }) {
   const list = items.filter((i) => i.scheduled_date === ymd);
   const d = new Date(`${ymd}T00:00:00`);
   return (
@@ -130,7 +130,7 @@ export function DayPanel({ ymd, items, canWrite, onOpen, onAdd }: { ymd: string;
             <li key={i.content_id}>
               <button onClick={() => onOpen(i)} className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-2 text-left ring-1 ring-inset ring-white/10 transition hover:bg-white/[0.07]">
                 <i className={cn('h-2.5 w-2.5 shrink-0 rounded-full', dotClass(i.status))} aria-hidden />
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-ink-100">{i.title}</span><span className="block text-xs text-ink-400">{i.platform} · {i.content_type}{i.member ? ` · ${i.member.name}` : ''}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-ink-100">{i.title}</span><span className="block text-xs text-ink-400">{i.platforms.join(', ')} · {i.content_types.join(', ')}{nameOf(i) ? ` · ${nameOf(i)}` : ''}</span></span>
                 <span className="text-xs text-ink-400">{i.status}</span>
               </button>
             </li>

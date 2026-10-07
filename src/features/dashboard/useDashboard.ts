@@ -41,7 +41,7 @@ export function useDashboard(tick: number): DashboardData {
           countRows('documentation', (q) => q.gte('event_date', mStart).lte('event_date', mEnd)),
           countRows('content_calendar', (q) => q.in('status', [...UNFINISHED_STATUSES])),
           countRows('assets'),
-          supabase.from('content_calendar').select('*, member:members(name,profile_photo)', { count: 'exact' })
+          supabase.from('content_calendar').select('*', { count: 'exact' })
             .gte('scheduled_date', today).not('status', 'in', '(Published,Cancelled)').order('scheduled_date').limit(6),
           supabase.from('documentation').select('*').order('created_at', { ascending: false }).limit(5),
           supabase.from('content_calendar').select('status').gte('scheduled_date', mStart).lte('scheduled_date', mEnd),
