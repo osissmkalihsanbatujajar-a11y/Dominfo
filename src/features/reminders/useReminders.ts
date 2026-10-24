@@ -22,7 +22,7 @@ function when(d: number, noun: string) {
 }
 
 /** Pengingat visual (tanpa push notification) dari konten & dokumentasi. */
-export function useReminders() {
+export function useReminders(includeContent = true) {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,13 +30,16 @@ export function useReminders() {
     const today = todayYMD();
     const soon = toYMD(addDays(new Date(), 3));
     const [content, docs] = await Promise.all([
-      supabase
-        .from('content_calendar')
-        .select('content_id,title,status,deadline,scheduled_date')
-        .not('status', 'in', '(Published,Cancelled)')
-        .or(`deadline.lte.${soon},scheduled_date.lte.${soon}`)
-        .order('scheduled_date', { ascending: true })
-        .limit(60),
+      // Kalender privat: viewer tidak pernah meminta data konten sama sekali.
+      includeContent
+        ? supabase
+            .from('content_calendar')
+            .select('content_id,title,status,deadline,scheduled_date')
+            .not('status', 'in', '(Published,Cancelled)')
+            .or(`deadline.lte.${soon},scheduled_date.lte.${soon}`)
+            .order('scheduled_date', { ascending: true })
+            .limit(60)
+        : Promise.resolve({ data: null }),
       supabase
         .from('documentation')
         .select('documentation_id,event_name,event_date,is_important')
@@ -79,7 +82,7 @@ export function useReminders() {
     out.sort((a, b) => rank[a.severity] - rank[b.severity]);
     setReminders(out);
     setLoading(false);
-  }, []);
+  }, [includeContent]);
 
   useEffect(() => { load(); }, [load]);
   return { reminders, loading, reload: load };

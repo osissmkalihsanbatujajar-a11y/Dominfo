@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarDays, Camera, Boxes, Search, Users, Loader2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { supabase } from '@/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cleanSearch } from '@/hooks/useList';
 import { formatDate, cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ const orFilter = (cols: string[], dateCols: string[], s: string) => {
 
 export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
+  const { canViewCalendar } = useAuth();
   const [q, setQ] = useState('');
   const dq = useDebounce(q, 250);
   const [hits, setHits] = useState<Hit[]>([]);
@@ -40,7 +42,10 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
     (async () => {
       const [docs, content, members, assets] = await Promise.all([
         supabase.from('documentation').select('documentation_id,event_name,event_date,category').or(orFilter(['event_name', 'category', 'location'], ['event_date'], s)).limit(5),
-        supabase.from('content_calendar').select('content_id,title,scheduled_date,categories').or(orFilter(['title', 'caption'], ['scheduled_date', 'deadline'], s)).limit(5),
+        // Kalender privat: viewer tidak ikut mencari di data konten.
+        canViewCalendar
+          ? supabase.from('content_calendar').select('content_id,title,scheduled_date,categories').or(orFilter(['title', 'caption'], ['scheduled_date', 'deadline'], s)).limit(5)
+          : Promise.resolve({ data: null }),
         supabase.from('members').select('member_id,name,roles').or(orFilter(['name', 'division'], [], s)).limit(5),
         supabase.from('assets').select('asset_id,name,category,version').or(orFilter(['name', 'category', 'file_type'], [], s)).limit(5),
       ]);
@@ -55,7 +60,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
       setLoading(false);
     })();
     return () => { alive = false; };
-  }, [dq, open]);
+  }, [dq, open, canViewCalendar]);
 
   const go = (h: Hit) => { onClose(); navigate(h.to); };
   const grouped = useMemo(() => {
@@ -72,7 +77,7 @@ export function GlobalSearch({ open, onClose }: { open: boolean; onClose: () => 
 
   const searched = cleanSearch(dq).length >= 2;
   return (
-    <Modal open={open} onClose={onClose} title="Pencarian global" description="Cari kegiatan, konten, anggota, aset, kategori, atau tanggal (YYYY-MM-DD).">
+    <Modal open={open} onClose={onClose} title="Pencarian global" description={canViewCalendar ? 'Cari kegiatan, konten, anggota, aset, kategori, atau tanggal (YYYY-MM-DD).' : 'Cari dokumentasi, anggota, aset, atau tanggal (YYYY-MM-DD).'}>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" aria-hidden />
         <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="Ketik minimal 2 huruf…" aria-label="Kata kunci pencarian" className="field h-12 pl-9" />

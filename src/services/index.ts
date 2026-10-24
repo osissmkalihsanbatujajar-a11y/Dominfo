@@ -15,12 +15,15 @@ export const userService = {
   setRole: (id: string, role: Role) => userCrud.update(id, { role }),
 };
 
-export async function fetchActivity(limit = 8): Promise<ActivityLog[]> {
-  const { data, error } = await supabase
+export async function fetchActivity(limit = 8, opts: { hideContent?: boolean } = {}): Promise<ActivityLog[]> {
+  let q = supabase
     .from('activity_logs')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(limit);
+  // Aktivitas konten memuat judul agenda -> disembunyikan dari viewer (RLS juga menegakkan ini).
+  if (opts.hideContent) q = q.neq('target_type', 'content');
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as ActivityLog[];
 }

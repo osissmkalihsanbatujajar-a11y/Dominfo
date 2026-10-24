@@ -1,14 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/supabase/client';
-import type { AppUser } from '@/types';
+import type { AppUser, Role } from '@/types';
 
 interface AuthContextValue {
   session: Session | null;
   profile: AppUser | null;
   loading: boolean;
+  role: Role | null;
   canWrite: boolean;
   isAdmin: boolean;
+  /** Kalender OSIS bersifat privat: hanya Admin & Editor. Viewer / profil belum termuat = false. */
+  canViewCalendar: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
@@ -54,8 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       profile,
       loading,
+      role: profile?.role ?? null,
       canWrite: profile?.role === 'admin' || profile?.role === 'editor',
       isAdmin: profile?.role === 'admin',
+      canViewCalendar: profile?.role === 'admin' || profile?.role === 'editor',
       signIn: async (email, password) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;

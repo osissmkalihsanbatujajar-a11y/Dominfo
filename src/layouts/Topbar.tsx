@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Bell, Menu, Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useAuth } from '@/hooks/useAuth';
 import { RemindersList } from '@/features/reminders/RemindersList';
 import { useReminders } from '@/features/reminders/useReminders';
 import { PAGE_TITLES } from './nav';
 
 export function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => void }) {
   const { pathname } = useLocation();
-  const { reminders } = useReminders();
+  const { canViewCalendar } = useAuth();
+  const { reminders } = useReminders(canViewCalendar);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const title = PAGE_TITLES[pathname] ?? 'Dashboard';

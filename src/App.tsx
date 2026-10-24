@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { ToastProvider } from '@/components/ui/Toast';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { AccessRestricted } from '@/components/AccessRestricted';
 import { isSupabaseConfigured } from '@/supabase/client';
 import { AppLayout } from '@/layouts/AppLayout';
 import LoginPage from '@/pages/LoginPage';
@@ -27,6 +28,12 @@ function RequireAuth({ children }: { children: JSX.Element }) {
   return session ? children : <Navigate to="/login" replace />;
 }
 
+/** Kalender OSIS privat: Viewer tidak boleh membukanya (data juga diblokir oleh RLS di database). */
+function RequireCalendarAccess({ children }: { children: JSX.Element }) {
+  const { canViewCalendar } = useAuth();
+  return canViewCalendar ? children : <AccessRestricted title="Kalender Konten" />;
+}
+
 export default function App() {
   if (!isSupabaseConfigured) return <SetupRequiredPage />;
   return (
@@ -37,7 +44,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
               <Route index element={<DashboardPage />} />
-              <Route path="kalender" element={<ContentPage />} />
+              <Route path="kalender" element={<RequireCalendarAccess><ContentPage /></RequireCalendarAccess>} />
               <Route path="dokumentasi" element={<DocumentationPage />} />
               <Route path="aset" element={<AssetsPage />} />
               <Route path="backup" element={<BackupPage />} />

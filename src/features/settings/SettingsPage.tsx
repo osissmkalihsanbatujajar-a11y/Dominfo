@@ -58,8 +58,8 @@ export default function SettingsPage() {
           <h2 id="hak-akses" className="text-base font-semibold text-ink-100">Hak akses</h2>
           <dl className="mt-3 space-y-2 text-sm text-ink-300">
             <div><dt className="inline font-medium text-ink-100">Admin:</dt> <dd className="inline">akses penuh, termasuk menghapus data dan mengelola anggota, kategori, serta role.</dd></div>
-            <div><dt className="inline font-medium text-ink-100">Editor:</dt> <dd className="inline">menambah dan mengubah konten, dokumentasi, aset, dan backup.</dd></div>
-            <div><dt className="inline font-medium text-ink-100">Viewer:</dt> <dd className="inline">hanya melihat data.</dd></div>
+            <div><dt className="inline font-medium text-ink-100">Editor:</dt> <dd className="inline">melihat Kalender Konten serta menambah dan mengubah konten, dokumentasi, aset, dan backup.</dd></div>
+            <div><dt className="inline font-medium text-ink-100">Viewer:</dt> <dd className="inline">hanya melihat dokumentasi, aset, backup, dan anggota. Kalender Konten bersifat privat dan tidak dapat dilihat Viewer.</dd></div>
           </dl>
 
           {isAdmin && (

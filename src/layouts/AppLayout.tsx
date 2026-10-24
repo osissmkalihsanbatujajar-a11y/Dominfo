@@ -4,7 +4,8 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { GlobalSearch } from '@/features/search/GlobalSearch';
 import { cn } from '@/lib/utils';
-import { MAIN_NAV } from './nav';
+import { useAuth } from '@/hooks/useAuth';
+import { MAIN_NAV, visibleNav } from './nav';
 import { SidebarContent } from './Sidebar';
 import { Topbar } from './Topbar';
 
@@ -12,6 +13,8 @@ export function AppLayout() {
   const [drawer, setDrawer] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { pathname } = useLocation();
+  const { canViewCalendar } = useAuth();
+  const bottomNav = visibleNav(MAIN_NAV, canViewCalendar);
 
   useEffect(() => setDrawer(false), [pathname]);
   useEffect(() => {
@@ -51,12 +54,17 @@ export function AppLayout() {
       </div>
 
       <nav aria-label="Navigasi cepat" className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-ink-900/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
-        <ul className="mx-auto grid max-w-xl grid-cols-5">
-          {MAIN_NAV.map(({ to, short, icon: Icon, ...rest }) => (
+        <ul className="mx-auto grid max-w-xl" style={{ gridTemplateColumns: `repeat(${bottomNav.length}, minmax(0, 1fr))` }}>
+          {bottomNav.map(({ to, short, icon: Icon, end }) => (
             <li key={to}>
-              <NavLink to={to} end={'end' in rest}
-                className={({ isActive }) => cn('flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition', isActive ? 'text-iris-300' : 'text-ink-400')}>
-                <Icon className="h-5 w-5" aria-hidden />{short}
+              <NavLink to={to} end={end}
+                className={({ isActive }) => cn('relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition', isActive ? 'text-iris-300' : 'text-ink-400')}>
+                {({ isActive }) => (
+                  <>
+                    <span aria-hidden className={cn('absolute top-0 h-0.5 w-8 rounded-b-full bg-iris-400 transition-opacity', isActive ? 'opacity-100' : 'opacity-0')} />
+                    <Icon className="h-5 w-5" aria-hidden />{short}
+                  </>
+                )}
               </NavLink>
             </li>
           ))}

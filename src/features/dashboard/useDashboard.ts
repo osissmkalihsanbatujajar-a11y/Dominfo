@@ -25,7 +25,11 @@ const EMPTY: DashboardData = {
   upcoming: [], recent: [], monthCounts: {}, logs: [],
 };
 
-export function useDashboard(tick: number): DashboardData {
+/**
+ * @param includeCalendar false untuk Viewer: kalender OSIS privat, jadi tidak ada satu pun
+ *                        query ke content_calendar yang dikirim (RLS di database juga memblokirnya).
+ */
+export function useDashboard(tick: number, includeCalendar: boolean): DashboardData {
   const [state, setState] = useState<DashboardData>(EMPTY);
 
   useEffect(() => {
@@ -36,24 +40,41 @@ export function useDashboard(tick: number): DashboardData {
         const today = todayYMD();
         const mStart = toYMD(new Date(now.getFullYear(), now.getMonth(), 1));
         const mEnd = toYMD(new Date(now.getFullYear(), now.getMonth() + 1, 0));
-        const [totalDocs, docsThisMonth, unfinished, totalAssets, upcoming, recent, month, logs] = await Promise.all([
+
+        const calendarQueries = includeCalendar
+          ? Promise.all([
+              countRows('content_calendar', (q) => q.in('status', [...UNFINISHED_STATUSES])),
+              supabase.from('content_calendar').select('*', { count: 'exact' })
+                .gte('scheduled_date', today).not('status', 'in', '(Published,Cancelled)').order('scheduled_date').limit(6),
+              supabase.from('content_calendar').select('status').gte('scheduled_date', mStart).lte('scheduled_date', mEnd),
+            ])
+          : Promise.resolve(null);
+
+        const [totalDocs, docsThisMonth, totalAssets, recent, logs, calendar] = await Promise.all([
           countRows('documentation'),
           countRows('documentation', (q) => q.gte('event_date', mStart).lte('event_date', mEnd)),
-          countRows('content_calendar', (q) => q.in('status', [...UNFINISHED_STATUSES])),
           countRows('assets'),
-          supabase.from('content_calendar').select('*', { count: 'exact' })
-            .gte('scheduled_date', today).not('status', 'in', '(Published,Cancelled)').order('scheduled_date').limit(6),
           supabase.from('documentation').select('*').order('created_at', { ascending: false }).limit(5),
-          supabase.from('content_calendar').select('status').gte('scheduled_date', mStart).lte('scheduled_date', mEnd),
-          fetchActivity(8),
+          fetchActivity(8, { hideContent: !includeCalendar }),
+          calendarQueries,
         ]);
         if (!alive) return;
+
         const monthCounts: Record<string, number> = {};
-        (month.data ?? []).forEach((r) => { monthCounts[r.status as string] = (monthCounts[r.status as string] ?? 0) + 1; });
+        let unfinished = 0;
+        let upcomingCount = 0;
+        let upcoming: ContentItem[] = [];
+        if (calendar) {
+          const [unfinishedCount, upcomingRes, monthRes] = calendar;
+          unfinished = unfinishedCount;
+          upcomingCount = upcomingRes.count ?? 0;
+          upcoming = (upcomingRes.data ?? []) as unknown as ContentItem[];
+          (monthRes.data ?? []).forEach((r) => { monthCounts[r.status as string] = (monthCounts[r.status as string] ?? 0) + 1; });
+        }
+
         setState({
           loading: false, error: null, totalDocs, docsThisMonth, unfinished, totalAssets,
-          upcomingCount: upcoming.count ?? 0,
-          upcoming: (upcoming.data ?? []) as unknown as ContentItem[],
+          upcomingCount, upcoming,
           recent: (recent.data ?? []) as DocumentationItem[],
           monthCounts, logs,
         });
@@ -62,7 +83,7 @@ export function useDashboard(tick: number): DashboardData {
       }
     })();
     return () => { alive = false; };
-  }, [tick]);
+  }, [tick, includeCalendar]);
 
   return state;
 }

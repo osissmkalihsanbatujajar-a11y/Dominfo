@@ -3,13 +3,14 @@
 @tailwind utilities;
 
 @layer base {
-  html { color-scheme: dark; -webkit-tap-highlight-color: transparent; }
+  html { color-scheme: dark; -webkit-tap-highlight-color: transparent; scroll-padding-top: 5rem; }
   body {
     @apply bg-ink-950 font-sans text-ink-100 antialiased;
     font-feature-settings: 'cv11', 'ss01';
     background-image:
-      radial-gradient(900px 480px at 85% -10%, rgba(111, 110, 242, 0.14), transparent 60%),
-      radial-gradient(700px 400px at -5% 10%, rgba(90, 85, 228, 0.08), transparent 60%);
+      radial-gradient(900px 480px at 85% -10%, rgba(111, 110, 242, 0.18), transparent 60%),
+      radial-gradient(700px 400px at -5% 10%, rgba(90, 85, 228, 0.10), transparent 60%),
+      radial-gradient(600px 360px at 50% 115%, rgba(111, 110, 242, 0.07), transparent 60%);
     background-attachment: fixed;
   }
   :focus-visible { @apply outline-none ring-2 ring-iris-400 ring-offset-2 ring-offset-ink-950; }
@@ -22,10 +23,31 @@
     @apply w-full rounded-xl bg-ink-900/70 px-3 text-sm text-ink-100 ring-1 ring-inset ring-white/10 transition placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-iris-400 disabled:cursor-not-allowed disabled:opacity-50;
     color-scheme: dark;
   }
-  .glass { @apply bg-white/[0.04] ring-1 ring-inset ring-white/10 shadow-soft backdrop-blur-xl; }
-  .card-hover { @apply transition duration-200 hover:bg-white/[0.07] hover:ring-white/20; }
+  /* Permukaan kaca dengan highlight tipis di tepi atas. */
+  .glass {
+    @apply bg-white/[0.04] ring-1 ring-inset ring-white/10 shadow-soft backdrop-blur-xl;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.008) 40%);
+  }
+  .card-hover { @apply transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.07] hover:ring-white/20; }
+  /* Kartu sambutan di Dashboard. */
+  .hero-surface {
+    @apply ring-1 ring-inset ring-iris-400/20 shadow-soft;
+    background-image:
+      radial-gradient(520px 220px at 95% -10%, rgba(111, 110, 242, 0.35), transparent 65%),
+      linear-gradient(135deg, rgba(90, 85, 228, 0.20), rgba(255, 255, 255, 0.02) 70%);
+  }
+  /* Muncul halus saat halaman dimuat; urutan lewat variabel --i. */
+  .animate-rise {
+    animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 55ms);
+  }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
 }
