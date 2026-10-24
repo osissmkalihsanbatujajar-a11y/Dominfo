@@ -7,6 +7,8 @@ interface AuthContextValue {
   session: Session | null;
   profile: AppUser | null;
   loading: boolean;
+  /** true jika login berhasil tetapi baris profil di tabel users tidak ditemukan / gagal dimuat. */
+  profileMissing: boolean;
   role: Role | null;
   canWrite: boolean;
   isAdmin: boolean;
@@ -24,28 +26,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileMissing, setProfileMissing] = useState(false);
   const userId = session?.user.id;
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      if (!data.session) setLoading(false);
-    });
+    let alive = true;
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (!alive) return;
+        setSession(data.session);
+        if (!data.session) setLoading(false);
+      })
+      // Tanpa catch, kegagalan jaringan membuat aplikasi memuat (skeleton) selamanya.
+      .catch(() => { if (alive) { setSession(null); setLoading(false); } });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       if (!s) {
         setProfile(null);
+        setProfileMissing(false);
         setLoading(false);
       }
     });
-    return () => sub.subscription.unsubscribe();
+    return () => { alive = false; sub.subscription.unsubscribe(); };
   }, []);
 
   const loadProfile = useCallback(async () => {
     if (!userId) return;
-    const { data } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
-    setProfile((data as AppUser) ?? null);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
+      if (error) throw error;
+      setProfile((data as AppUser) ?? null);
+      setProfileMissing(!data);
+    } catch {
+      setProfileMissing(true);
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -57,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       profile,
       loading,
+      profileMissing,
       role: profile?.role ?? null,
       canWrite: profile?.role === 'admin' || profile?.role === 'editor',
       isAdmin: profile?.role === 'admin',
@@ -75,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       refreshProfile: loadProfile,
     }),
-    [session, profile, loading, loadProfile],
+    [session, profile, loading, profileMissing, loadProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -33,10 +33,11 @@ interface Props {
 }
 
 /** Bangun nilai awal formulir dari sebuah record (null -> ''), dengan nilai bawaan. */
-export function buildInitial(fields: FieldDef[], source: Record<string, unknown> = {}): Values {
+export function buildInitial(fields: FieldDef[], source: object = {}): Values {
+  const src = source as Record<string, unknown>;
   const out: Values = {};
   for (const f of fields) {
-    const v = source[f.name];
+    const v = src[f.name];
     if (f.type === 'checkbox') out[f.name] = Boolean(v);
     else if (f.type === 'multicheck') out[f.name] = Array.isArray(v) ? v.map(String) : [];
     else out[f.name] = v === null || v === undefined ? '' : String(v);

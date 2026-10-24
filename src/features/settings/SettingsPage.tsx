@@ -19,7 +19,7 @@ import type { AppUser, Role } from '@/types';
 const fields: FieldDef[] = [{ name: 'full_name', label: 'Nama tampilan', required: true, span: 2 }];
 
 export default function SettingsPage() {
-  const { profile, session, isAdmin, refreshProfile, signOut } = useAuth();
+  const { profile, session, isAdmin, profileMissing, refreshProfile, signOut } = useAuth();
   const toast = useToast();
   const [users, setUsers] = useState<AppUser[] | null>(null);
 
@@ -36,7 +36,19 @@ export default function SettingsPage() {
     }
   }
 
-  if (!profile) return <ListSkeleton rows={3} />;
+  if (!profile) {
+    if (!profileMissing) return <ListSkeleton rows={3} />;
+    return (
+      <>
+        <PageHeader title="Pengaturan" description="Kelola profil Anda dan hak akses pengguna." />
+        <div role="alert" className="glass rounded-2xl p-5 text-sm text-ink-200">
+          <p className="font-medium text-ink-100">Profil akun belum tersedia.</p>
+          <p className="mt-1 text-ink-300">Akun {session?.user.email} belum punya baris di tabel <code>users</code>. Hubungi Admin, atau jalankan ulang <code>supabase/schema.sql</code>, lalu muat ulang halaman.</p>
+          <div className="mt-4 flex gap-2"><Button onClick={() => refreshProfile()}>Coba lagi</Button><Button variant="danger" onClick={signOut}><LogOut className="h-4 w-4" aria-hidden /> Keluar</Button></div>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <PageHeader title="Pengaturan" description="Kelola profil Anda dan hak akses pengguna." />

@@ -372,3 +372,28 @@ create policy "users_admin_update" on public.users for update to authenticated
 -- Activity log: hanya bisa dibaca. Penulisan dilakukan trigger (security definer).
 drop policy if exists "logs_select" on public.activity_logs;
 create policy "logs_select" on public.activity_logs for select to authenticated using (true);
+
+-- ---------------------------------------------------------------------
+-- 5. KALENDER OSIS PRIVAT
+--    Kalender berisi rencana kegiatan yang belum dilaksanakan -> hanya
+--    admin & editor yang boleh MEMBACA. Viewer tidak melihat satu baris pun.
+--    Memakai kebijakan RESTRICTIVE (di-AND-kan dengan kebijakan di atas).
+--    Instalasi lama: jalankan migrations/003_private_calendar.sql.
+-- ---------------------------------------------------------------------
+create or replace function public.can_view_calendar() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.users u
+    where u.id = auth.uid() and u.role in ('admin', 'editor')
+  )
+$$;
+
+drop policy if exists "calendar_private_select" on public.content_calendar;
+create policy "calendar_private_select" on public.content_calendar
+  as restrictive for select using (public.can_view_calendar());
+
+-- Log aktivitas konten memuat judul agenda -> sembunyikan dari viewer.
+drop policy if exists "activity_hide_content_from_viewers" on public.activity_logs;
+create policy "activity_hide_content_from_viewers" on public.activity_logs
+  as restrictive for select
+  using (coalesce(target_type, '') <> 'content' or public.can_view_calendar());

@@ -42,7 +42,7 @@ function NavGroup({ label, items, onNavigate }: { label: string; items: NavItem[
 }
 
 function UserMenu({ onNavigate }: { onNavigate?: () => void }) {
-  const { profile, session, signOut } = useAuth();
+  const { profile, session, signOut, profileMissing } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const name = profile?.full_name || session?.user.email || 'Pengguna';
@@ -75,7 +75,7 @@ function UserMenu({ onNavigate }: { onNavigate?: () => void }) {
           <span className="block truncate text-sm font-medium text-ink-100">{name}</span>
           <span className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-400">
             <i className={cn('h-1.5 w-1.5 rounded-full', profile?.role === 'viewer' ? 'bg-slate-400' : 'bg-emerald-400')} aria-hidden />
-            {profile ? ROLE_LABEL[profile.role] : 'Memuat…'}
+            {profile ? ROLE_LABEL[profile.role] : profileMissing ? 'Profil belum tersedia' : 'Memuat…'}
           </span>
         </span>
         <ChevronsUpDown className="h-4 w-4 text-ink-400" aria-hidden />
